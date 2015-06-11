@@ -1,12 +1,7 @@
 package org.cloudfoundry.identity.uaa.scim.validate;
 
-import org.cloudfoundry.identity.uaa.authentication.Origin;
 import org.cloudfoundry.identity.uaa.config.PasswordPolicy;
 import org.cloudfoundry.identity.uaa.scim.exception.InvalidPasswordException;
-import org.cloudfoundry.identity.uaa.util.JsonUtils;
-import org.cloudfoundry.identity.uaa.zone.IdentityProvider;
-import org.cloudfoundry.identity.uaa.zone.IdentityProviderProvisioning;
-import org.cloudfoundry.identity.uaa.zone.IdentityZoneHolder;
 import org.passay.DigitCharacterRule;
 import org.passay.LengthRule;
 import org.passay.LowercaseCharacterRule;
@@ -16,12 +11,10 @@ import org.passay.Rule;
 import org.passay.RuleResult;
 import org.passay.SpecialCharacterRule;
 import org.passay.UppercaseCharacterRule;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * ****************************************************************************
@@ -39,10 +32,10 @@ import java.util.Map;
  */
 public class UaaPasswordPolicyValidator implements PasswordValidator {
 
-    private final IdentityProviderProvisioning provisioning;
+    private PasswordPolicyResolver passwordPolicyResolver;
 
-    public UaaPasswordPolicyValidator(IdentityProviderProvisioning provisioning) {
-        this.provisioning = provisioning;
+    public void setPasswordPolicyResolver(PasswordPolicyResolver passwordPolicyResolver) {
+        this.passwordPolicyResolver = passwordPolicyResolver;
     }
 
     @Override
@@ -51,24 +44,8 @@ public class UaaPasswordPolicyValidator implements PasswordValidator {
             throw new IllegalArgumentException("Password cannot be null");
         }
 
-        IdentityProvider idp = provisioning.retrieveByOrigin(Origin.UAA, IdentityZoneHolder.get().getId());
-        if (idp==null || idp.getConfig()==null) {
-            //no config stored
-            return null;
-        }
-
-        Map<String, Object> configMap = JsonUtils.readValue(idp.getConfig(), Map.class);
-        Object policyObject = configMap.get(PasswordPolicy.PASSWORD_POLICY_FIELD);
-        if (policyObject==null) {
-            //no policy stored
-            return null;
-        }
-
-        PasswordPolicy policy = JsonUtils.convertValue(policyObject, PasswordPolicy.class);
-        if (policy==null) {
-            //no policy stored
-            return null;
-        }
+        PasswordPolicy policy = passwordPolicyResolver.resolve();
+        if (policy == null) return null;
         org.passay.PasswordValidator validator = getPasswordValidator(policy);
         RuleResult result = validator.validate(new PasswordData(password));
         if (!result.isValid()) {

@@ -17,6 +17,7 @@ import org.cloudfoundry.identity.uaa.mock.util.MockMvcUtils;
 import org.cloudfoundry.identity.uaa.oauth.client.ClientDetailsModification;
 import org.cloudfoundry.identity.uaa.scim.ScimUser;
 import org.cloudfoundry.identity.uaa.scim.ScimUserProvisioning;
+import org.cloudfoundry.identity.uaa.test.RunWithRealPasswordPolicy;
 import org.cloudfoundry.identity.uaa.test.TestClient;
 import org.cloudfoundry.identity.uaa.util.JsonUtils;
 import org.cloudfoundry.identity.uaa.util.SetServerNameRequestPostProcessor;
@@ -252,18 +253,23 @@ public class ScimUserEndpointsMockMvcTests extends InjectedMockContextTest {
 
     @Test
     public void cannotCreateUserWithInvalidPasswordInDefaultZone() throws Exception {
-        ScimUser user = getScimUser();
-        user.setPassword("P");
-        byte[] requestBody = JsonUtils.writeValueAsBytes(user);
-        MockHttpServletRequestBuilder post = post("/Users")
-                .header("Authorization", "Bearer " + scimCreateToken)
-                .contentType(APPLICATION_JSON)
-                .content(requestBody);
+        new RunWithRealPasswordPolicy(getWebApplicationContext()) {
+            @Override
+            public void methodToRun() throws Exception {
+                ScimUser user = getScimUser();
+                user.setPassword("P");
+                byte[] requestBody = JsonUtils.writeValueAsBytes(user);
+                MockHttpServletRequestBuilder post = post("/Users")
+                        .header("Authorization", "Bearer " + scimCreateToken)
+                        .contentType(APPLICATION_JSON)
+                        .content(requestBody);
 
-        getMockMvc().perform(post)
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("invalid_password"))
-                .andExpect(jsonPath("$.message").value("Password must be at least 6 characters in length.,Password must contain at least 1 lowercase characters.,Password must contain at least 1 digit characters."));
+                getMockMvc().perform(post)
+                        .andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.error").value("invalid_password"))
+                        .andExpect(jsonPath("$.message").value("Password must be at least 6 characters in length.,Password must contain at least 1 lowercase characters.,Password must contain at least 1 digit characters."));
+            }
+        }.run();
     }
 
     private void createScimClient(String adminAccessToken, String id, String secret) throws Exception {

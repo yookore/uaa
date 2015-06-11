@@ -13,9 +13,14 @@
 package org.cloudfoundry.identity.uaa.scim.endpoints;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.cloudfoundry.identity.uaa.config.PasswordPolicy;
 import org.cloudfoundry.identity.uaa.mock.InjectedMockContextTest;
 import org.cloudfoundry.identity.uaa.mock.util.MockMvcUtils;
 import org.cloudfoundry.identity.uaa.scim.ScimUser;
+import org.cloudfoundry.identity.uaa.scim.validate.PasswordPolicyResolver;
+import org.cloudfoundry.identity.uaa.scim.validate.UaaPasswordPolicyResolver;
+import org.cloudfoundry.identity.uaa.scim.validate.UaaPasswordPolicyValidator;
+import org.cloudfoundry.identity.uaa.test.RunWithRealPasswordPolicy;
 import org.cloudfoundry.identity.uaa.test.TestClient;
 import org.cloudfoundry.identity.uaa.util.JsonUtils;
 import org.junit.Before;
@@ -26,6 +31,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -93,13 +100,18 @@ public class PasswordResetEndpointsMockMvcTests extends InjectedMockContextTest 
 
     @Test
     public void changePassword_withInvalidPassword_returnsErrorJson() throws Exception {
-        getMockMvc().perform(post("/password_change")
-                .header("Authorization", "Bearer " + loginToken)
-                .contentType(APPLICATION_JSON)
-                .content("{\"username\":\""+user.getUserName()+"\",\"current_password\":\"secr3T\",\"new_password\":\"abcdefgh\"}"))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.error").value("invalid_password"))
-                .andExpect(jsonPath("$.message").value("Password must contain at least one upper case character." +
-                        ",Password must contain at least one digit."));
+        new RunWithRealPasswordPolicy(getWebApplicationContext()) {
+            @Override
+            public void methodToRun() throws Exception {
+                getMockMvc().perform(post("/password_change")
+                        .header("Authorization", "Bearer " + loginToken)
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"username\":\"" + user.getUserName() + "\",\"current_password\":\"secr3T\",\"new_password\":\"abcdefgh\"}"))
+                        .andExpect(status().isUnprocessableEntity())
+                        .andExpect(jsonPath("$.error").value("invalid_password"))
+                        .andExpect(jsonPath("$.message").value("Password must contain at least 1 uppercase characters." +
+                                ",Password must contain at least 1 digit characters."));
+            }
+        }.run();
     }
 }

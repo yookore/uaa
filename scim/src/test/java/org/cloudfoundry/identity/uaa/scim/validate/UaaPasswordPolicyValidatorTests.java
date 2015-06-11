@@ -5,8 +5,6 @@ import org.cloudfoundry.identity.uaa.authentication.Origin;
 import org.cloudfoundry.identity.uaa.config.PasswordPolicy;
 import org.cloudfoundry.identity.uaa.scim.ScimUser;
 import org.cloudfoundry.identity.uaa.scim.exception.InvalidPasswordException;
-import org.cloudfoundry.identity.uaa.util.JsonUtils;
-import org.cloudfoundry.identity.uaa.zone.IdentityProvider;
 import org.cloudfoundry.identity.uaa.zone.IdentityProviderProvisioning;
 import org.cloudfoundry.identity.uaa.zone.IdentityZone;
 import org.cloudfoundry.identity.uaa.zone.IdentityZoneHolder;
@@ -15,11 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -46,23 +40,15 @@ public class UaaPasswordPolicyValidatorTests {
 
     private UaaPasswordPolicyValidator validator;
 
-    private IdentityProvider internalIDP;
-
-    private PasswordPolicy passwordPolicy;
-
     @Before
     public void setUp() {
-        PasswordPolicy passwordPolicy = new PasswordPolicy(10, 23, 1, 1, 1, 1, 6);
-        IdentityZoneHolder.set(IdentityZone.getUaa());
-        validator = new UaaPasswordPolicyValidator(provisioning);
-
-        internalIDP = new IdentityProvider();
-        Map<String, Object> config = new HashMap<>();
-        config.put(PasswordPolicy.PASSWORD_POLICY_FIELD, JsonUtils.convertValue(passwordPolicy, Map.class));
-        internalIDP.setConfig(JsonUtils.writeValueAsString(config));
-
-        Mockito.when(provisioning.retrieveByOrigin(Origin.UAA, IdentityZone.getUaa().getId()))
-                .thenReturn(internalIDP);
+        validator = new UaaPasswordPolicyValidator();
+        validator.setPasswordPolicyResolver(new PasswordPolicyResolver() {
+            @Override
+            public PasswordPolicy resolve() {
+                return new PasswordPolicy(10, 23, 1, 1, 1, 1, 6);
+            }
+        });
     }
 
     @Test
