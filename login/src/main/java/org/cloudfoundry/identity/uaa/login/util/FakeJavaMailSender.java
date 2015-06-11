@@ -35,10 +35,12 @@ public class FakeJavaMailSender implements JavaMailSender {
 
     private final Session session;
     private final ArrayList<MimeMessageWrapper> sentMessages;
+    public final int maxNumberOfMessage;
 
     public FakeJavaMailSender() {
+        maxNumberOfMessage = 25;
         session = Session.getInstance(new Properties());
-        sentMessages = new ArrayList<>();
+        sentMessages = new ArrayList<>(maxNumberOfMessage);
     }
 
     @Override
@@ -53,6 +55,9 @@ public class FakeJavaMailSender implements JavaMailSender {
 
     @Override
     public void send(MimeMessage mimeMessage) throws MailException {
+        while (sentMessages.size()>=maxNumberOfMessage) {
+            sentMessages.remove(0);
+        }
         sentMessages.add(new MimeMessageWrapper(mimeMessage));
     }
 
