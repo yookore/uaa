@@ -140,11 +140,11 @@ public class BootstrapTests {
             assertEquals(JavaMailSenderImpl.class, emailService.getMailSender().getClass());
         }
         PasswordPolicy passwordPolicy = context.getBean(PasswordPolicy.class);
-        assertEquals(6, passwordPolicy.getMinLength());
+        assertEquals(0, passwordPolicy.getMinLength());
         assertEquals(128, passwordPolicy.getMaxLength());
-        assertEquals(1,passwordPolicy.getRequireUpperCaseCharacter());
-        assertEquals(1,passwordPolicy.getRequireLowerCaseCharacter());
-        assertEquals(1,passwordPolicy.getRequireDigit());
+        assertEquals(0,passwordPolicy.getRequireUpperCaseCharacter());
+        assertEquals(0,passwordPolicy.getRequireLowerCaseCharacter());
+        assertEquals(0,passwordPolicy.getRequireDigit());
         assertEquals(0,passwordPolicy.getRequireSpecialCharacter());
         assertEquals(0, passwordPolicy.getExpirePasswordInMonths());
     }
