@@ -43,7 +43,7 @@ public class UaaPasswordPolicyResolverTest {
 
     @Before
     public void setUp() {
-        PasswordPolicy passwordPolicy = new PasswordPolicy(19, 28, 1, 1, 1, 1, null, 6);
+        PasswordPolicy passwordPolicy = new PasswordPolicy(19, 28, 1, 1, 1, 1, 6);
         IdentityZoneHolder.set(IdentityZone.getUaa());
 
         IdentityProvider internalIDP = new IdentityProvider();

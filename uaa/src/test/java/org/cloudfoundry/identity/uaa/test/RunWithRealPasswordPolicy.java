@@ -31,7 +31,7 @@ abstract public class RunWithRealPasswordPolicy {
     public void run() throws Exception {
         UaaPasswordPolicyValidator validator = applicationContext.getBean(UaaPasswordPolicyValidator.class);
         PasswordPolicyResolver resolver = mock(PasswordPolicyResolver.class);
-        when(resolver.resolve()).thenReturn(new PasswordPolicy(6, 128, 1, 1, 1, 0, null, 0));
+        when(resolver.resolve()).thenReturn(new PasswordPolicy(6, 128, 1, 1, 1, 0, 0));
         try {
             validator.setPasswordPolicyResolver(resolver);
             methodToRun();

@@ -99,8 +99,13 @@ public class UaaPasswordPolicyValidatorTests {
 
     @Test
     public void testValidationDisabledWhenZoneIsNotDefault() {
-        IdentityZoneHolder.set(new IdentityZone().setId("foo"));
-        validatePassword("Password123");
+        validator.setPasswordPolicyResolver(new PasswordPolicyResolver() {
+            @Override
+            public PasswordPolicy resolve() {
+                return null;
+            }
+        });
+        validatePassword("a");
     }
 
     private void validatePassword(String password, String ... expectedErrors) {

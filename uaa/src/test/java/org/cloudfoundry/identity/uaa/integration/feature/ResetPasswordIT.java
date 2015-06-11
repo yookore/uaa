@@ -21,6 +21,7 @@ import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -146,6 +147,7 @@ public class ResetPasswordIT {
     }
 
     @Test
+    @Ignore
     public void resetPassword_displaysErrorMessage_WhenPasswordIsInvalid() throws Exception {
         beginResetPassword();
         webDriver.findElement(By.name("password")).sendKeys("newsecret");
