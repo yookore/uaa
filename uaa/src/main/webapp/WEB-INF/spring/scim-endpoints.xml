@@ -37,7 +37,7 @@
         <constructor-arg value="${password.policy.requireLowerCaseCharacter:1}"/>
         <constructor-arg value="${password.policy.requireDigit:1}"/>
         <constructor-arg value="${password.policy.requireSpecialCharacter:0}"/>
-        <constructor-arg value="${password.policy.specialCharacters:#{null}}"/>
+        <constructor-arg value=" !&quot;#$%&amp;'()*+,-./:;&lt;=&gt;?@[\]^_`{|}~"/>
         <constructor-arg value="${password.policy.expirePasswordInMonths:0}"/>
     </bean>
 
