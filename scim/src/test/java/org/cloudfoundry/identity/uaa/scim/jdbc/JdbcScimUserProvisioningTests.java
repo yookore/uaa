@@ -32,6 +32,7 @@ import org.cloudfoundry.identity.uaa.zone.JdbcIdentityProviderProvisioning;
 import org.cloudfoundry.identity.uaa.zone.JdbcIdentityZoneProvisioning;
 import org.cloudfoundry.identity.uaa.zone.MultitenancyFixture;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.dao.DuplicateKeyException;
@@ -826,4 +827,18 @@ public class JdbcScimUserProvisioningTests extends JdbcTestBase {
         assertNull(joe.getGroups());
     }
 
+    @Test
+    public void testCheckPasswordMatchesReturnTrue() {
+        assertTrue(db.checkPasswordMatches(JOE_ID, "joespassword"));
+    }
+
+    @Test
+    public void testCheckPasswordMatchesReturnsFalse() {
+        assertFalse(db.checkPasswordMatches(JOE_ID, "differentPassword"));
+    }
+
+    @Test(expected = ScimResourceNotFoundException.class)
+    public void testCheckPasswordMatchesThrowsException() {
+        db.checkPasswordMatches("no-user-id", "joespassword");
+    }
 }
