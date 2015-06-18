@@ -115,46 +115,14 @@ public class PasswordResetEndpoints implements ApplicationEventPublisherAware {
         ResponseEntity<Map<String,String>> responseEntity;
         if (isCodeAuthenticatedChange(passwordChange)) {
             responseEntity = changePasswordCodeAuthenticated(passwordChange);
-        } else if (isUsernamePasswordAuthenticatedChange(passwordChange)) {
-            responseEntity = changePasswordUsernamePasswordAuthenticated(passwordChange);
         } else {
             responseEntity = new ResponseEntity<>(BAD_REQUEST);
         }
         return responseEntity;
     }
 
-    private boolean isUsernamePasswordAuthenticatedChange(PasswordChange passwordChange) {
-        return passwordChange.getUsername() != null && passwordChange.getCurrentPassword() != null && passwordChange.getCode() == null;
-    }
-
     private boolean isCodeAuthenticatedChange(PasswordChange passwordChange) {
         return passwordChange.getCode() != null && passwordChange.getCurrentPassword() == null && passwordChange.getUsername() == null;
-    }
-
-    private ResponseEntity<Map<String,String>> changePasswordUsernamePasswordAuthenticated(PasswordChange passwordChange) {
-        List<ScimUser> results = scimUserProvisioning.query("userName eq \"" + passwordChange.getUsername() + "\"");
-        if (results.isEmpty()) {
-            return new ResponseEntity<>(BAD_REQUEST);
-        }
-        String oldPassword = passwordChange.getCurrentPassword();
-        ScimUser user = results.get(0);
-        try {
-            scimUserProvisioning.changePassword(user.getId(), oldPassword, passwordChange.getNewPassword());
-            publish(new PasswordChangeEvent("Password changed", getUaaUser(user), SecurityContextHolder.getContext().getAuthentication()));
-            Map<String,String> userInfo = new HashMap<>();
-            userInfo.put("user_id", user.getId());
-            userInfo.put("username", user.getUserName());
-            return new ResponseEntity<>(userInfo, OK);
-        } catch (BadCredentialsException x) {
-            publish(new PasswordChangeFailureEvent(x.getMessage(), getUaaUser(user), SecurityContextHolder.getContext().getAuthentication()));
-            return new ResponseEntity<>(UNAUTHORIZED);
-        } catch (ScimResourceNotFoundException x) {
-            publish(new PasswordChangeFailureEvent(x.getMessage(), getUaaUser(user), SecurityContextHolder.getContext().getAuthentication()));
-            return new ResponseEntity<>(NOT_FOUND);
-        } catch (Exception x) {
-            publish(new PasswordChangeFailureEvent(x.getMessage(), getUaaUser(user), SecurityContextHolder.getContext().getAuthentication()));
-            return new ResponseEntity<>(INTERNAL_SERVER_ERROR);
-        }
     }
 
     protected ResponseEntity<Map<String,String>> changePasswordCodeAuthenticated(PasswordChange passwordChange) {
@@ -210,6 +178,7 @@ public class PasswordResetEndpoints implements ApplicationEventPublisherAware {
         return (userModified > codeCreated);
     }
 
+    @Deprecated
     protected UaaUser getUaaUser(ScimUser scimUser) {
         Date today = new Date();
         return new UaaUser(scimUser.getId(), scimUser.getUserName(), "N/A", scimUser.getPrimaryEmail(), null,

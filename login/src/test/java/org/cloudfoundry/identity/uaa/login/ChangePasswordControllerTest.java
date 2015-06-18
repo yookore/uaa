@@ -115,7 +115,7 @@ public class ChangePasswordControllerTest extends TestClassNullifier {
                 .param("new_password", "new secret")
                 .param("confirm_password", "new secret");
 
-        when(changePasswordService.changePassword("bob", "secret", "new secret")).thenThrow(new InvalidPasswordException(newArrayList("Msg 2b", "Msg 1b")));
+        Mockito.doThrow(new InvalidPasswordException(newArrayList("Msg 2b", "Msg 1b"))).when(changePasswordService).changePassword("bob", "secret", "new secret");
         mockMvc.perform(post)
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(view().name("change_password"))

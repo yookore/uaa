@@ -65,8 +65,6 @@ public class ChangePasswordController {
             return "redirect:profile";
         } catch (BadCredentialsException e) {
             model.addAttribute("message_code", "unauthorized");
-        } catch (RestClientException e) { //left over from login-server days
-            model.addAttribute("message_code", "unauthorized");
         } catch (InvalidPasswordException e) { //TODO test
             model.addAttribute("message", e.getMessagesAsOneString());
         }
