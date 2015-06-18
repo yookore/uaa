@@ -31,6 +31,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import java.util.Arrays;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;

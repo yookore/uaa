@@ -41,6 +41,7 @@ import java.util.Date;
 import static org.cloudfoundry.identity.uaa.scim.endpoints.PasswordResetEndpoints.PASSWORD_RESET_LIFETIME;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -227,7 +228,7 @@ public class PasswordResetEndpointsTest extends TestClassNullifier {
         user.addEmail("user@example.com");
         when(scimUserProvisioning.query("userName eq \"user@example.com\""))
                 .thenReturn(Arrays.asList(user));
-
+        when(scimUserProvisioning.checkPasswordMatches(anyString(), anyString())).thenReturn(false);
         MockHttpServletRequestBuilder post = post("/password_change")
                 .contentType(APPLICATION_JSON)
                 .content("{\"username\":\"user@example.com\",\"current_password\":\"secret\",\"new_password\":\"new_secret\"}")
@@ -245,6 +246,7 @@ public class PasswordResetEndpointsTest extends TestClassNullifier {
 
     @Test
     public void testChangingAPasswordWithABadRequest() throws Exception {
+        when(scimUserProvisioning.checkPasswordMatches(anyString(), anyString())).thenReturn(false);
         MockHttpServletRequestBuilder post = post("/password_change")
                 .contentType(APPLICATION_JSON)
                 .content("{\"code\":\"emailed_code\",\"username\":\"user@example.com\",\"current_password\":\"secret\",\"new_password\":\"new_secret\"}")
@@ -256,6 +258,7 @@ public class PasswordResetEndpointsTest extends TestClassNullifier {
 
     @Test
     public void testPasswordsMustSatisfyPolicy() throws Exception {
+        when(scimUserProvisioning.checkPasswordMatches(anyString(), anyString())).thenReturn(false);
         when(passwordValidator.validate("new_secret")).thenThrow(new InvalidPasswordException("Password flunks policy"));
         MockHttpServletRequestBuilder post = post("/password_change")
                 .contentType(APPLICATION_JSON)
@@ -265,5 +268,41 @@ public class PasswordResetEndpointsTest extends TestClassNullifier {
         mockMvc.perform(post)
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(content().string("{\"message\":\"Password flunks policy\",\"error\":\"invalid_password\"}"));
+    }
+
+    @Test
+    public void changePassword_ThrowsInvalidPasswordException_WhenNewPasswordSameAsOld() throws Exception {
+        when(scimUserProvisioning.checkPasswordMatches(anyString(), anyString())).thenReturn(true);
+        ScimUser user = new ScimUser("id001", "user@example.com", null, null);
+        user.setMeta(new ScimMeta(new Date(System.currentTimeMillis()-(1000*60*60*24)), new Date(System.currentTimeMillis()-(1000*60*60*24)), 0));
+        user.addEmail("user@example.com");
+        when(scimUserProvisioning.query("userName eq \"user@example.com\""))
+            .thenReturn(Arrays.asList(user));
+
+        MockHttpServletRequestBuilder post = post("/password_change")
+            .contentType(APPLICATION_JSON)
+            .content("{\"username\":\"user@example.com\",\"current_password\":\"secret\",\"new_password\":\"secret\"}")
+            .accept(APPLICATION_JSON);
+
+        mockMvc.perform(post).andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    public void changePassword_ThrowsInvalidPasswordException_WhenNewPasswordSameAsOldWithCode() throws Exception {
+        when(scimUserProvisioning.checkPasswordMatches(anyString(), anyString())).thenReturn(true);
+        when(expiringCodeStore.retrieveCode("emailed_code"))
+            .thenReturn(new ExpiringCode("emailed_code", new Timestamp(System.currentTimeMillis() + PASSWORD_RESET_LIFETIME), "eyedee"));
+        when(scimUserProvisioning.checkPasswordMatches(anyString(), anyString())).thenReturn(true);
+        ScimUser user = new ScimUser("eyedee", "user@example.com", null, null);
+        user.setMeta(new ScimMeta(new Date(System.currentTimeMillis()-(1000*60*60*24)), new Date(System.currentTimeMillis()-(1000*60*60*24)), 0));
+        user.addEmail("user@example.com");
+        when(scimUserProvisioning.retrieve("eyedee")).thenReturn(user);
+
+        MockHttpServletRequestBuilder post = post("/password_change")
+            .contentType(APPLICATION_JSON)
+            .content("{\"code\":\"emailed_code\", \"new_password\":\"secret\"}")
+            .accept(APPLICATION_JSON);
+
+        mockMvc.perform(post).andExpect(status().isUnprocessableEntity());
     }
 }

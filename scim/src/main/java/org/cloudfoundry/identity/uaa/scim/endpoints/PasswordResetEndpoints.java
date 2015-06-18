@@ -30,6 +30,7 @@ import org.cloudfoundry.identity.uaa.scim.validate.PasswordValidator;
 import org.cloudfoundry.identity.uaa.user.UaaUser;
 import org.cloudfoundry.identity.uaa.util.JsonUtils;
 import org.cloudfoundry.identity.uaa.util.JsonUtils.JsonUtilException;
+import org.omg.CORBA.DynAnyPackage.Invalid;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -123,6 +124,12 @@ public class PasswordResetEndpoints implements ApplicationEventPublisherAware {
         return responseEntity;
     }
 
+    private void checkPasswordMatches(String userId, String newPassword) {
+        if (scimUserProvisioning.checkPasswordMatches(userId, newPassword)) {
+            throw new InvalidPasswordException("Your new password cannot be the same as the old password");
+        }
+    }
+
     private boolean isUsernamePasswordAuthenticatedChange(PasswordChange passwordChange) {
         return passwordChange.getUsername() != null && passwordChange.getCurrentPassword() != null && passwordChange.getCode() == null;
     }
@@ -139,6 +146,7 @@ public class PasswordResetEndpoints implements ApplicationEventPublisherAware {
         String oldPassword = passwordChange.getCurrentPassword();
         ScimUser user = results.get(0);
         try {
+            checkPasswordMatches(user.getId(), passwordChange.getNewPassword());
             scimUserProvisioning.changePassword(user.getId(), oldPassword, passwordChange.getNewPassword());
             publish(new PasswordChangeEvent("Password changed", getUaaUser(user), SecurityContextHolder.getContext().getAuthentication()));
             Map<String,String> userInfo = new HashMap<>();
@@ -151,6 +159,8 @@ public class PasswordResetEndpoints implements ApplicationEventPublisherAware {
         } catch (ScimResourceNotFoundException x) {
             publish(new PasswordChangeFailureEvent(x.getMessage(), getUaaUser(user), SecurityContextHolder.getContext().getAuthentication()));
             return new ResponseEntity<>(NOT_FOUND);
+        } catch (InvalidPasswordException x) {
+            return new ResponseEntity<>(UNPROCESSABLE_ENTITY);
         } catch (Exception x) {
             publish(new PasswordChangeFailureEvent(x.getMessage(), getUaaUser(user), SecurityContextHolder.getContext().getAuthentication()));
             return new ResponseEntity<>(INTERNAL_SERVER_ERROR);
@@ -180,6 +190,7 @@ public class PasswordResetEndpoints implements ApplicationEventPublisherAware {
             if (!user.isVerified()) {
                 scimUserProvisioning.verifyUser(userId, -1);
             }
+            checkPasswordMatches(userId, passwordChange.getNewPassword());
             scimUserProvisioning.changePassword(userId, null, passwordChange.getNewPassword());
             publish(new PasswordChangeEvent("Password changed", getUaaUser(user), SecurityContextHolder.getContext().getAuthentication()));
             userInfo.put("user_id", user.getId());
@@ -192,6 +203,8 @@ public class PasswordResetEndpoints implements ApplicationEventPublisherAware {
         } catch (ScimResourceNotFoundException x) {
             publish(new PasswordChangeFailureEvent(x.getMessage(), getUaaUser(user), SecurityContextHolder.getContext().getAuthentication()));
             return new ResponseEntity<>(NOT_FOUND);
+        } catch (InvalidPasswordException x) {
+            return new ResponseEntity<>(UNPROCESSABLE_ENTITY);
         } catch (Exception x) {
             publish(new PasswordChangeFailureEvent(x.getMessage(), getUaaUser(user), SecurityContextHolder.getContext().getAuthentication()));
             return new ResponseEntity<>(INTERNAL_SERVER_ERROR);

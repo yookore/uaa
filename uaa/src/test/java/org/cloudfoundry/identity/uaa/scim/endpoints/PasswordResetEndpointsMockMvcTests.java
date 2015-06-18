@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.util.Map;
@@ -41,7 +42,7 @@ public class PasswordResetEndpointsMockMvcTests extends InjectedMockContextTest 
         TestClient testClient = new TestClient(getMockMvc());
         loginToken = testClient.getClientCredentialsOAuthAccessToken("login", "loginsecret", "oauth.login");
         String adminToken = testClient.getClientCredentialsOAuthAccessToken("admin", "adminsecret", null);
-        user = new ScimUser(null, new RandomValueStringGenerator().generate()+"@test.org", "PasswordResetUserFirst", "PasswordResetUserLast");
+        user = new ScimUser("user-id", new RandomValueStringGenerator().generate()+"@test.org", "PasswordResetUserFirst", "PasswordResetUserLast");
         user.setPrimaryEmail(user.getUserName());
         user.setPassword("secr3T");
         user = MockMvcUtils.utils().createUser(getMockMvc(), adminToken, user);
@@ -49,32 +50,40 @@ public class PasswordResetEndpointsMockMvcTests extends InjectedMockContextTest 
 
     @Test
     public void testAPasswordReset() throws Exception {
+        passwordResetRequest("new_secr3T").andExpect(status().isOk())
+                .andExpect(jsonPath("$.user_id").exists())
+                .andExpect(jsonPath("$.username").value(user.getUserName()));
+    }
+
+    @Test
+    public void testAPasswordResetWithSamePassword() throws Exception {
+        passwordResetRequest("secr3T").andExpect(status().isUnprocessableEntity());
+    }
+
+    private ResultActions passwordResetRequest(String newPassword) throws Exception {
         MockHttpServletRequestBuilder post;
 
         post = post("/password_resets")
-                .header("Authorization", "Bearer " + loginToken)
-                .contentType(APPLICATION_JSON)
-                .content(user.getUserName())
-                .accept(APPLICATION_JSON);
+            .header("Authorization", "Bearer " + loginToken)
+            .contentType(APPLICATION_JSON)
+            .content(user.getUserName())
+            .accept(APPLICATION_JSON);
 
         MvcResult result = getMockMvc().perform(post)
-                .andExpect(status().isCreated())
-                .andReturn();
+            .andExpect(status().isCreated())
+            .andReturn();
 
         String responseString = result.getResponse().getContentAsString();
         Map<String,String> response = JsonUtils.readValue(responseString, new TypeReference<Map<String, String>>() {
         });
 
         post = post("/password_change")
-                .header("Authorization", "Bearer " + loginToken)
-                .contentType(APPLICATION_JSON)
-                .content("{\"code\":\"" + response.get("code") + "\",\"new_password\":\"new_secr3T\"}")
-                .accept(APPLICATION_JSON);
+            .header("Authorization", "Bearer " + loginToken)
+            .contentType(APPLICATION_JSON)
+            .content("{\"code\":\"" + response.get("code") + "\",\"new_password\":\"" + newPassword + "\"}")
+            .accept(APPLICATION_JSON);
 
-        getMockMvc().perform(post)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.user_id").exists())
-                .andExpect(jsonPath("$.username").value(user.getUserName()));
+        return getMockMvc().perform(post);
     }
 
     @Test
@@ -89,6 +98,18 @@ public class PasswordResetEndpointsMockMvcTests extends InjectedMockContextTest 
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.user_id").exists())
                 .andExpect(jsonPath("$.username").value(user.getUserName()));
+    }
+
+    @Test
+    public void testAPasswordChangeWithSamePassword() throws Exception {
+        MockHttpServletRequestBuilder post = post("/password_change")
+            .header("Authorization", "Bearer " + loginToken)
+            .contentType(APPLICATION_JSON)
+            .content("{\"username\":\""+user.getUserName()+"\",\"current_password\":\"secr3T\",\"new_password\":\"secr3T\"}")
+            .accept(APPLICATION_JSON);
+
+        getMockMvc().perform(post)
+            .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
