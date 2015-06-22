@@ -3,6 +3,7 @@ applications:
 - name: idp
   instances: 1
   memory: 1G
+  path: lib/idp-latest.war
   env:
     UAA_CONFIG_FILE: /app/uaa.yml
     UAA_CONFIG_PATH: /app
