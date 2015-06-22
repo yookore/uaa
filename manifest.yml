@@ -7,5 +7,7 @@ applications:
     UAA_CONFIG_FILE: /app/uaa.yml
     UAA_CONFIG_PATH: /app
     SPRING_PROFILES_ACTIVE: postgresql
+    UAA_URL: http://idp.10.244.0.34.xip.io
+    LOGIN_URL: http://idp.10.244.0.34.xip.io
   services:
     - postgresql_ups_idp_dev
