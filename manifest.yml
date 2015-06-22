@@ -1,0 +1,11 @@
+---
+applications:
+- name: idp
+  instances: 1
+  memory: 1G
+  env:
+    UAA_CONFIG_FILE: /app/uaa.yml
+    UAA_CONFIG_PATH: /app
+    SPRING_PROFILES_ACTIVE: postgresql
+  services:
+    - postgresql_ups_idp_dev
