@@ -14,14 +14,9 @@ then
     exit 1
 fi
 
-$(cp build/libs/*.jar build/idp-latest.jar)
+# $(cp build/libs/*.jar build/idp-latest.jar)
 
-# If no jar found, look for a war
-if [ ! "$?" -eq "0" ]
-then
-    echo "Copying war file"
-    $(cp build/libs/*.war build/idp-latest.war)
-fi
+$(cp uaa/build/libs/*.war build/idp-latest.war)
 
 # Run tests
 #if [ ! "$?" -eq "0" ]
