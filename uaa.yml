@@ -31,9 +31,9 @@ oauth:
         override: true
         id: useraccount
         secret: useraccountsecret
-        scope: openid,oauth.approvals,scim.read,scim.write,password.write,scim.userids
+        scope: openid,password.write,tokens.read,tokens.write,client.read,uaa.admin,oauth.approvals
         authorized-grant-types: authorization_code,client_credentials,implicit
-        authorities: oauth.login,scim.write,clients.read,notifications.write,critical_notifications.write,emails.write,scim.userids,password.write
+        authorities: uaa.resource,clients.secret,clients.read,clients.write,uaa.admin,scim.read,openid,scim.write,password.write,scim.userids,scim.me,oauth.approvals,cloud_controller.read,cloud_controller.write
         access_token_validity: 155520000000 # 180 days
   user:
     authorities:
@@ -57,7 +57,7 @@ scim:
     - acme|acme.dev,acme.qa
     - acme.dev|marissa
   users:
-    - marissa|koala|marissa@test.org|Marissa|Bloggs|uaa.user
+    - marissa|koala|marissa@test.org|Marissa|Bloggs|uaa.admin
   userids_enabled: true
   
 spring_profiles: postgresql,default
