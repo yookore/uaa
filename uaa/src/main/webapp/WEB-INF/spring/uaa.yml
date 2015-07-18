@@ -1,0 +1,69 @@
+#uaa:
+#  default:
+#    username: marissa
+#    password: dr0WssaPH@ck
+
+oauth:
+  client:
+    autoapprove:
+      - useraccount
+      - qa
+      - mobile-qa
+  clients:
+    useraccount:
+      override: true
+      id: useraccount
+      secret: useraccountsecret
+      scope: openid,password.write,tokens.read,tokens.write,client.read,uaa.admin,oauth.approvals
+      authorized-grant-types: authorization_code,client_credentials,password,refresh_token
+      authorities: uaa.resource,clients.secret,clients.read,clients.write,uaa.admin,scim.read,openid,scim.write,password.write,scim.userids,scim.me,oauth.approvals,cloud_controller.read,cloud_controller.write
+    qa:
+      override: true
+      id: qa
+      secret: qasecret
+      scope: uaa.none
+      authorized-grant-types: client_credentials,refresh_token
+      authorities: uaa.resource
+    mobile-qa:
+      override: true
+      id: mobile-qa
+      secret: mobileqasecret
+      scope: uaa.none
+      authorized-grant-types: client_credentials,refresh_token
+      authorities: uaa.resource
+    rweb:
+      override: true
+      id: rweb
+      secret: rwebsecret
+      scope: uaa.none
+      authorized-grant-types: client_credentials,refresh_token
+      authorities: uaa.resource
+  user:
+    authorities:
+      - openid
+      - scim.me
+      - cloud_controller.read
+      - cloud_controller.write
+      - cloud_controller_service_permissions.read
+      - password.write
+      - scim.userids
+      - uaa.user
+      - approvals.me
+      - oauth.approvals
+      - scim.read
+      - scim.write
+      - oauth.login
+
+scim:
+  users:
+    - marissa|koala|marissa@test.org|Marissa|Bloggs|uaa.admin,uaa.user
+  userids_enabled: true
+  
+spring_profiles: postgresql
+database:
+  driverClassName: org.postgresql.Driver
+  url: jdbc:postgresql://192.168.10.144:5432/uaa
+  username: root
+  password: r00tu$5r
+
+require_https: false
