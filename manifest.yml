@@ -1,11 +1,12 @@
 ---
 applications:
 - name: idp
-  instances: 1
-  memory: 1G
+  instances: 2
+  memory: 2G
   #path: lib/idp-latest.war
   path: uaa/build/libs/cloudfoundry-identity-uaa-2.3.1.war
   #buildpack: https://github.com/cloudfoundry/java-buildpack.git#v2.4
+  timeout: 180
   env:
     UAA_CONFIG_FILE: /app/WEB-INF/spring/uaa.yml
     #UAA_CONFIG_PATH: /app/WEB-INF/spring
