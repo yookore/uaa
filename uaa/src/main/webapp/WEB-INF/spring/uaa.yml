@@ -17,6 +17,7 @@ oauth:
       scope: openid,password.write,tokens.read,tokens.write,client.read,uaa.admin,oauth.approvals
       authorized-grant-types: authorization_code,client_credentials,password,refresh_token
       authorities: uaa.resource,clients.secret,clients.read,clients.write,uaa.admin,scim.read,openid,scim.write,password.write,scim.userids,scim.me,oauth.approvals,cloud_controller.read,cloud_controller.write
+      access_token_validity: 315360000
     qa:
       override: true
       id: qa
@@ -24,6 +25,7 @@ oauth:
       scope: uaa.none
       authorized-grant-types: client_credentials,refresh_token
       authorities: uaa.resource
+      access_token_validity: 315360000
     mobile-qa:
       override: true
       id: mobile-qa
@@ -31,6 +33,7 @@ oauth:
       scope: uaa.none
       authorized-grant-types: client_credentials,refresh_token
       authorities: uaa.resource
+      access_token_validity: 315360000
     rweb:
       override: true
       id: rweb
@@ -38,6 +41,7 @@ oauth:
       scope: uaa.none
       authorized-grant-types: client_credentials,refresh_token
       authorities: uaa.resource
+      access_token_validity: 315360000
   user:
     authorities:
       - openid
