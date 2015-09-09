@@ -11,7 +11,7 @@ oauth:
       - mobile-qa
   clients:
     useraccount:
-      override: true
+      #override: true
       id: useraccount
       secret: useraccountsecret
       scope: openid,password.write,tokens.read,tokens.write,client.read,uaa.admin,oauth.approvals
@@ -19,7 +19,7 @@ oauth:
       authorities: uaa.resource,clients.secret,clients.read,clients.write,uaa.admin,scim.read,openid,scim.write,password.write,scim.userids,scim.me,oauth.approvals,cloud_controller.read,cloud_controller.write
       access_token_validity: 315360000
     qa:
-      override: true
+      #override: true
       id: qa
       secret: qasecret
       scope: uaa.none
@@ -27,7 +27,7 @@ oauth:
       authorities: uaa.resource
       access_token_validity: 315360000
     mobile-qa:
-      override: true
+      #override: true
       id: mobile-qa
       secret: mobileqasecret
       scope: uaa.none
@@ -35,7 +35,7 @@ oauth:
       authorities: uaa.resource
       access_token_validity: 315360000
     rweb:
-      override: true
+      #override: true
       id: rweb
       secret: rwebsecret
       scope: uaa.none
