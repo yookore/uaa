@@ -69,8 +69,8 @@ database:
   #url: jdbc:postgresql://192.168.10.144:5432/uaa
   #username: root
   #password: r00tu$5r
-  url: jdbc:postgresql://10.10.10.221:5432/uaa
+  url: jdbc:postgresql://192.168.121.178:5432/uaa
   username: postgres
-  password: Gonzo@7072
+  password: postgres
 
 require_https: false

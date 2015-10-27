@@ -12,5 +12,5 @@ applications:
     #UAA_CONFIG_PATH: /app/WEB-INF/spring
     CLOUD_FOUNDRY_CONFIG_PATH: /app/WEB-INF/spring
     SPRING_PROFILES_ACTIVE: postgresql
-    UAA_URL: http://idp.apps.yookore.net
-    LOGIN_URL: http://idp.apps.yookore.net
+    UAA_URL: http://idp.apps.yookosapps.com
+    LOGIN_URL: http://idp.apps.yookosapps.com
